@@ -85,6 +85,18 @@ with col1:
                             if len(parts) == 2:
                                 symbol, tf = parts
                                 df = pd.read_csv(csv_file)
+                                required_cols = {"timestamp", "open", "high", "low", "close", "volume"}
+                                missing_cols = required_cols - set(df.columns)
+                                if missing_cols:
+                                    st.warning(
+                                        f"Skipping {csv_file.name}: missing columns {sorted(missing_cols)}"
+                                    )
+                                    continue
+                                df["timestamp"] = pd.to_numeric(df["timestamp"], errors="coerce")
+                                df = df.dropna(subset=["timestamp"]).sort_values("timestamp").reset_index(drop=True)
+                                if df.empty:
+                                    st.warning(f"Skipping {csv_file.name}: no valid timestamp rows found")
+                                    continue
                                 if symbol not in data:
                                     data[symbol] = {}
                                 data[symbol][tf] = df
