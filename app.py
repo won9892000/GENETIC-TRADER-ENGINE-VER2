@@ -4,6 +4,7 @@ import numpy as np
 from pathlib import Path
 import json
 import sys
+import yaml
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -21,6 +22,20 @@ st.set_page_config(
 st.title("GA Trading Strategy Engine")
 st.markdown("유전 알고리즘을 활용한 트레이딩 전략 최적화 엔진")
 
+def load_config_presets():
+    presets = {"Custom": None}
+    configs_dir = Path("configs")
+    if configs_dir.exists():
+        for f in configs_dir.glob("*.yaml"):
+            try:
+                cfg = yaml.safe_load(f.read_text(encoding="utf-8"))
+                presets[f.stem] = cfg
+            except:
+                pass
+    return presets
+
+config_presets = load_config_presets()
+
 with st.sidebar:
     st.header("Settings")
     
@@ -30,25 +45,88 @@ with st.sidebar:
         help="Choose data source for backtesting"
     )
     
+    st.subheader("Config Preset")
+    preset_name = st.selectbox(
+        "Load Preset",
+        list(config_presets.keys()),
+        help="Load pre-configured settings"
+    )
+    
+    preset = config_presets.get(preset_name)
+    
     st.subheader("GA Parameters")
-    population = st.slider("Population Size", 10, 100, 20, help="Number of strategies per generation")
-    generations = st.slider("Generations", 1, 50, 5, help="Number of evolution cycles")
-    elite_ratio = st.slider("Elite Ratio", 0.05, 0.30, 0.10, help="Top performers to keep")
-    tournament_k = st.slider("Tournament Size", 2, 10, 3, help="Selection tournament size")
-    crossover_rate = st.slider("Crossover Rate", 0.5, 1.0, 0.70, help="Probability of crossover")
-    mutation_rate = st.slider("Mutation Rate", 0.05, 0.50, 0.20, help="Probability of mutation")
+    if preset and "ga" in preset:
+        ga_cfg = preset["ga"]
+        pop_default = ga_cfg.get("population", 20)
+        gen_default = ga_cfg.get("generations", 5)
+        elite_default = ga_cfg.get("elite_ratio", 0.10)
+        tourn_default = ga_cfg.get("tournament_k", 3)
+        cross_default = ga_cfg.get("crossover_rate", 0.70)
+        mut_default = ga_cfg.get("mutation_rate", 0.20)
+        immigrant_default = ga_cfg.get("immigrant_ratio", 0.10)
+        stag_default = ga_cfg.get("stagnation_gens", 5)
+    else:
+        pop_default, gen_default = 20, 5
+        elite_default, tourn_default = 0.10, 3
+        cross_default, mut_default = 0.70, 0.20
+        immigrant_default, stag_default = 0.10, 5
+    
+    population = st.slider("Population Size", 10, 500, min(pop_default, 500), help="Number of strategies per generation")
+    generations = st.slider("Generations", 1, 150, min(gen_default, 150), help="Number of evolution cycles")
+    elite_ratio = st.slider("Elite Ratio", 0.01, 0.30, elite_default, help="Top performers to keep")
+    tournament_k = st.slider("Tournament Size", 2, 10, tourn_default, help="Selection tournament size")
+    crossover_rate = st.slider("Crossover Rate", 0.5, 1.0, cross_default, help="Probability of crossover")
+    mutation_rate = st.slider("Mutation Rate", 0.05, 0.50, mut_default, help="Probability of mutation")
+    immigrant_ratio = st.slider("Immigrant Ratio", 0.0, 0.30, immigrant_default, help="New random strategies per generation")
+    stagnation_gens = st.slider("Stagnation Limit", 3, 20, stag_default, help="Generations before restart")
     rng_seed = st.number_input("Random Seed", 1, 1000, 7, help="Reproducibility seed")
     topk = st.slider("Top K Results", 3, 20, 5, help="Number of top strategies to save")
 
     st.subheader("Strategy Space")
+    if preset and "strategy" in preset:
+        max_filters_default = preset["strategy"].get("max_extra_filters", 1)
+    else:
+        max_filters_default = 1
+    
     ema_fast_range = st.slider("EMA Fast Range", 5, 50, (5, 30))
     ema_slow_range = st.slider("EMA Slow Range", 20, 150, (20, 80))
     rsi_len_range = st.slider("RSI Length Range", 5, 50, (6, 30))
     atr_len_range = st.slider("ATR Length Range", 5, 50, (7, 28))
+    max_extra_filters = st.slider("Max Extra Filters", 0, 10, max_filters_default, help="Number of community indicator filters")
+
+    st.subheader("Fitness Mode")
+    if preset and "fitness" in preset:
+        fit_cfg = preset["fitness"]
+        fitness_mode_default = fit_cfg.get("mode", "weighted_sum")
+        if "targets" in fit_cfg:
+            targets = fit_cfg["targets"]
+            wr_default = targets.get("win_rate", 0.55)
+            rr_default = targets.get("rr", 1.0)
+            min_trades_default = targets.get("min_trades", 20)
+        else:
+            wr_default, rr_default, min_trades_default = 0.55, 1.0, 20
+    else:
+        fitness_mode_default = "weighted_sum"
+        wr_default, rr_default, min_trades_default = 0.55, 1.0, 20
+    
+    fitness_mode = st.selectbox("Fitness Mode", ["weighted_sum", "targets"], index=0 if fitness_mode_default == "weighted_sum" else 1)
+    
+    target_win_rate = wr_default
+    target_rr = rr_default
+    target_min_trades = min_trades_default
+    
+    if fitness_mode == "targets":
+        st.markdown("**Target Settings:**")
+        target_win_rate = st.slider("Target Win Rate", 0.40, 0.75, wr_default)
+        target_rr = st.slider("Target Risk/Reward", 0.5, 3.0, rr_default)
+        target_min_trades = st.number_input("Min Trades", 10, 100, min_trades_default)
 
     st.subheader("Backtest Settings")
     commission_bps = st.number_input("Commission (bps)", 0.0, 20.0, 4.0)
     notional = st.number_input("Notional Size ($)", 10.0, 10000.0, 100.0)
+
+indicators_root = Path("ga_trader/indicators")
+reg = IndicatorRegistry.from_root(indicators_root)
 
 col1, col2 = st.columns([2, 1])
 
@@ -118,9 +196,6 @@ with col1:
             progress_bar.progress(10)
             status_text.text("Loading indicator registry...")
             
-            indicators_root = Path("indicators")
-            reg = IndicatorRegistry.from_root(indicators_root)
-            
             progress_bar.progress(20)
             status_text.text("Setting up evaluation context...")
 
@@ -147,23 +222,33 @@ with col1:
                 "tp_atr": [0.6, 2.5],
                 "z_len": [0, 40],
                 "z_entry": [0.0, 2.0],
-                "max_extra_filters": 1,
+                "max_extra_filters": max_extra_filters,
             }
 
-            fitness_cfg = {
-                "mode": "weighted_sum",
-                "weights": {
-                    "oos_expectancy": 2.0,
-                    "oos_profit_factor": 0.5,
-                    "oos_win_rate": 0.5,
-                    "oos_trades_per_month": 0.2,
-                    "oos_max_drawdown": -1.0,
-                    "is_oos_gap": -0.5,
-                },
-                "constraints": {
-                    "oos_trades_per_month": [1, 300],
-                },
-            }
+            if fitness_mode == "targets":
+                fitness_cfg = {
+                    "mode": "targets",
+                    "targets": {
+                        "win_rate": target_win_rate,
+                        "rr": target_rr,
+                        "min_trades": target_min_trades,
+                    },
+                }
+            else:
+                fitness_cfg = {
+                    "mode": "weighted_sum",
+                    "weights": {
+                        "oos_expectancy": 2.0,
+                        "oos_profit_factor": 0.5,
+                        "oos_win_rate": 0.5,
+                        "oos_trades_per_month": 0.2,
+                        "oos_max_drawdown": -1.0,
+                        "is_oos_gap": -0.5,
+                    },
+                    "constraints": {
+                        "oos_trades_per_month": [1, 300],
+                    },
+                }
 
             progress_bar.progress(30)
             status_text.text("Running genetic algorithm optimization...")
@@ -207,7 +292,18 @@ with col2:
     - EMA crossover for trend
     - RSI for entry signals
     - ATR-based stops
+    - Community indicators for extra filters
     """)
+    
+    st.subheader("Available Indicators")
+    if reg.specs:
+        indicator_list = list(reg.specs.keys())
+        with st.expander(f"Community Indicators ({len(indicator_list)})", expanded=False):
+            for ind_id in indicator_list:
+                spec = reg.specs[ind_id]
+                st.markdown(f"**{spec.name}**: {spec.description}")
+    else:
+        st.caption("No community indicators loaded")
 
 st.markdown("---")
 
@@ -258,6 +354,11 @@ if results_dir.exists():
                         ]
                     })
                     st.dataframe(params_df, hide_index=True)
+                    
+                    if 'extra_filters' in spec and spec['extra_filters']:
+                        st.markdown("**Extra Filters (Community Indicators):**")
+                        for idx, flt in enumerate(spec['extra_filters']):
+                            st.markdown(f"- Filter {idx+1}: `{flt.get('indicator_id', 'N/A')}` {flt.get('operator', '')} {flt.get('threshold', '')}")
                 
                 with col_b:
                     st.markdown("**Performance Metrics:**")
