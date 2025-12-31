@@ -1,0 +1,35 @@
+indicator_id: c_bb_width_z
+name: BB Width Z
+description: bb width z
+timeframe: trigger
+parameters:
+  length:
+    length:
+      type: int
+      min: 5
+      max: 200
+      default: 20
+      unit: bars
+  mult:
+    mult:
+      type: float
+      min: 0.5
+      max: 4.0
+      default: 2.0
+      unit: ratio
+  z_len:
+    z_len:
+      type: int
+      min: 20
+      max: 500
+      default: 200
+      unit: bars
+outputs:
+  value:
+    scale:
+    - -3
+    - 3
+python_impl: ga_trader.indicators.python_impl.community50:c_bb_width_z
+pine_snippet: 'value = 0.0
+
+  '

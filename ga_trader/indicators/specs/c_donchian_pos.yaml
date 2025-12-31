@@ -1,0 +1,21 @@
+indicator_id: c_donchian_pos
+name: Donchian Pos
+description: donchian pos
+timeframe: trigger
+parameters:
+  length:
+    length:
+      type: int
+      min: 5
+      max: 200
+      default: 20
+      unit: bars
+outputs:
+  value:
+    scale:
+    - -3
+    - 3
+python_impl: ga_trader.indicators.python_impl.community50:c_donchian_pos
+pine_snippet: 'value = 0.0
+
+  '

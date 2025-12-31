@@ -1,0 +1,28 @@
+indicator_id: c_rsi_z
+name: RSI Z
+description: rsi z
+timeframe: trigger
+parameters:
+  length:
+    length:
+      type: int
+      min: 2
+      max: 60
+      default: 14
+      unit: bars
+  z_len:
+    z_len:
+      type: int
+      min: 20
+      max: 500
+      default: 200
+      unit: bars
+outputs:
+  value:
+    scale:
+    - -3
+    - 3
+python_impl: ga_trader.indicators.python_impl.community50:c_rsi_z
+pine_snippet: 'value = 0.0
+
+  '

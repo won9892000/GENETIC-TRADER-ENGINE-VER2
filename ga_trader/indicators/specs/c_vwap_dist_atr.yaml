@@ -1,0 +1,28 @@
+indicator_id: c_vwap_dist_atr
+name: VWAP Dist ATR
+description: vwap dist atr
+timeframe: trigger
+parameters:
+  length:
+    length:
+      type: int
+      min: 5
+      max: 500
+      default: 50
+      unit: bars
+  atr_len:
+    atr_len:
+      type: int
+      min: 5
+      max: 100
+      default: 14
+      unit: bars
+outputs:
+  value:
+    scale:
+    - -3
+    - 3
+python_impl: ga_trader.indicators.python_impl.community50:c_vwap_dist_atr
+pine_snippet: 'value = 0.0
+
+  '

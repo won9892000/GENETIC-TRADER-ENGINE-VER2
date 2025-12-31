@@ -1,0 +1,28 @@
+indicator_id: c_rsi_z_slow
+name: RSI Z Slow
+description: rsi z slow
+timeframe: trigger
+parameters:
+  length:
+    length:
+      type: int
+      min: 20
+      max: 80
+      default: 28
+      unit: bars
+  z_len:
+    z_len:
+      type: int
+      min: 20
+      max: 500
+      default: 200
+      unit: bars
+outputs:
+  value:
+    scale:
+    - -3
+    - 3
+python_impl: ga_trader.indicators.python_impl.community50:c_rsi_z_slow
+pine_snippet: 'value = 0.0
+
+  '

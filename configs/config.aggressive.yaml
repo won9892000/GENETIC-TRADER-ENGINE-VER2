@@ -1,0 +1,21 @@
+
+ga:
+  population: 400
+  generations: 120
+  elite_ratio: 0.03
+  tournament_k: 7
+  crossover_rate: 0.65
+  mutation_rate: 0.28
+  immigrant_ratio: 0.20
+  stagnation_gens: 10
+  restart_fraction: 0.90
+
+strategy:
+  max_extra_filters: 8
+
+fitness:
+  mode: targets
+  targets:
+    win_rate: 0.58
+    rr: 1.1
+    min_trades: 40
