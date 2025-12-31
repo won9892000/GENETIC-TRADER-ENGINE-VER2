@@ -111,8 +111,13 @@ def evaluate_genome(g: Genome, ctx: EvalContext, fitness_cfg: Dict[str, Any]) ->
     }
     metrics["is_oos_gap"] = abs(metrics["is_expectancy"] - metrics["oos_expectancy"])
 
-    fit = evaluate_fitness(metrics, mode=str(fitness_cfg.get("mode","weighted_sum")),
-                           weights=dict(fitness_cfg.get("weights", {}) or {}),
+    mode = str(fitness_cfg.get("mode", "weighted_sum"))
+    if mode == "targets":
+        weights = dict(fitness_cfg.get("targets", {}) or {})
+    else:
+        weights = dict(fitness_cfg.get("weights", {}) or {})
+    fit = evaluate_fitness(metrics, mode=mode,
+                           weights=weights,
                            constraints=dict(fitness_cfg.get("constraints", {}) or {}))
     extra = {"spec": spec.to_dict(), "metrics": metrics}
     return fit, extra

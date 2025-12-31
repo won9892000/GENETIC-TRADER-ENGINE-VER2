@@ -72,4 +72,31 @@ def evaluate_fitness(metrics: Dict[str, float], mode: str, weights: Dict[str, fl
             fitness -= 10.0
         return FitnessResult(fitness=fitness, passed=passed, details={**metrics, **cdetails})
 
+    if mode == "targets":
+        # Target-based fitness: reward strategies that meet specific targets
+        targets = weights or {}
+        target_wr = float(targets.get("win_rate", 0.55))
+        target_rr = float(targets.get("rr", 1.0))
+        min_trades = float(targets.get("min_trades", 20))
+        
+        oos_wr = float(metrics.get("oos_win_rate", 0.0))
+        oos_pf = float(metrics.get("oos_profit_factor", 0.0))
+        oos_trades = float(metrics.get("oos_trades_per_month", 0.0)) * 12  # annualize
+        oos_exp = float(metrics.get("oos_expectancy", 0.0))
+        
+        # Score each target
+        wr_score = min(1.0, oos_wr / target_wr) if target_wr > 0 else 0.0
+        rr_score = min(1.0, oos_pf / target_rr) if target_rr > 0 else 0.0
+        trades_score = min(1.0, oos_trades / min_trades) if min_trades > 0 else 0.0
+        
+        # Bonus for exceeding targets
+        wr_bonus = max(0, oos_wr - target_wr) * 0.5
+        rr_bonus = max(0, oos_pf - target_rr) * 0.3
+        
+        fitness = (wr_score + rr_score + trades_score) / 3.0 + wr_bonus + rr_bonus + oos_exp * 0.1
+        
+        if not passed:
+            fitness -= 10.0
+        return FitnessResult(fitness=fitness, passed=passed, details={**metrics, **cdetails})
+
     raise ValueError(f"Unknown fitness mode: {mode}")
