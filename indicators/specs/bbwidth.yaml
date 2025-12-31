@@ -1,0 +1,30 @@
+indicator_id: bbwidth
+name: BBWidth (Bollinger Band Width)
+description: >
+  Bollinger Band width normalized by basis. Useful as a volatility regime filter.
+author: "GA Trader Engine"
+license: "MIT (engine code)"
+source: "built-in"
+timeframe: trigger
+parameters:
+  length:
+    type: int
+    min: 10
+    max: 50
+  mult:
+    type: float
+    min: 1.5
+    max: 3.0
+outputs:
+  width_pct:
+    kind: value
+    # typical range in %; used for normalization in genome thresholds
+    scale: [0.0, 0.2]
+python_impl: "ga_trader.indicators.python_impl.volatility:bbwidth"
+pine_snippet: |
+  // BBWidth (% of basis)
+  bb_basis = ta.sma(close, length)
+  bb_dev = mult * ta.stdev(close, length)
+  bb_upper = bb_basis + bb_dev
+  bb_lower = bb_basis - bb_dev
+  width_pct = (bb_upper - bb_lower) / bb_basis

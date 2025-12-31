@@ -1,0 +1,292 @@
+from __future__ import annotations
+from dataclasses import dataclass
+from typing import Dict, Any, List, Optional, Tuple, Callable
+import numpy as np
+import pandas as pd
+import importlib
+
+from ga_trader.ta.core import ema, rsi, atr, zscore, percentile_linear_interpolation
+from ga_trader.utils import bps_to_rate, safe_div, month_bucket, round_to_tick, apply_slippage_ticks
+from ga_trader.indicators.registry import IndicatorRegistry
+from ga_trader.strategy.spec import StrategySpec, IndicatorFilter
+
+@dataclass
+class Trade:
+    symbol: str
+    timeframe: str
+    entry_ts: int
+    exit_ts: int
+    side: str  # 'long'|'short'
+    entry_price: float
+    exit_price: float
+    pnl: float
+    pnl_r: float
+    fee: float
+
+@dataclass
+class BacktestResult:
+    trades: List[Trade]
+    equity_curve: np.ndarray
+    metrics: Dict[str, float]
+
+def _compute_metrics(trades: List[Trade]) -> Dict[str, float]:
+    if not trades:
+        return {
+            "trades": 0,
+            "win_rate": 0.0,
+            "profit_factor": 0.0,
+            "expectancy": 0.0,
+            "max_drawdown": 0.0,
+            "avg_r": 0.0,
+            "trades_per_month": 0.0,
+            "net_pnl": 0.0,
+        }
+    pnls = np.array([t.pnl for t in trades], dtype=float)
+    wins = pnls[pnls > 0]
+    losses = -pnls[pnls < 0]
+    win_rate = float(np.mean(pnls > 0))
+    pf = float(np.sum(wins) / np.sum(losses)) if np.sum(losses) > 0 else float("inf")
+    exp = float(np.mean(pnls))
+    rs = np.array([t.pnl_r for t in trades], dtype=float)
+    avg_r = float(np.nanmean(rs)) if len(rs) else 0.0
+
+    buckets = {}
+    for t in trades:
+        b = month_bucket(t.entry_ts)
+        buckets[b] = buckets.get(b, 0) + 1
+    tpm = float(np.mean(list(buckets.values()))) if buckets else 0.0
+
+    eq = np.cumsum(pnls)
+    peak = np.maximum.accumulate(eq)
+    dd = peak - eq
+    mdd = float(np.max(dd)) if len(dd) else 0.0
+    denom = float(np.max(np.abs(peak))) if float(np.max(np.abs(peak))) > 0 else float(np.max(np.abs(eq))) if len(eq) else 1.0
+    mdd_ratio = float(mdd / denom) if denom > 0 else 0.0
+
+    return {
+        "trades": float(len(trades)),
+        "win_rate": win_rate,
+        "profit_factor": pf if np.isfinite(pf) else 999.0,
+        "expectancy": exp,
+        "max_drawdown": mdd_ratio,
+        "avg_r": avg_r,
+        "trades_per_month": tpm,
+        "net_pnl": float(np.sum(pnls)),
+    }
+
+def _align_anchor_to_trigger(anchor_df: pd.DataFrame, trigger_df: pd.DataFrame, series: np.ndarray) -> np.ndarray:
+    # For each trigger timestamp, pick the last anchor bar with ts <= trigger ts, and use its series value.
+    a_ts = anchor_df["timestamp"].to_numpy(dtype=np.int64)
+    t_ts = trigger_df["timestamp"].to_numpy(dtype=np.int64)
+    out = np.full_like(t_ts, np.nan, dtype=float)
+    j = 0
+    for i in range(len(t_ts)):
+        while j + 1 < len(a_ts) and a_ts[j + 1] <= t_ts[i]:
+            j += 1
+        if a_ts[j] <= t_ts[i]:
+            out[i] = series[j]
+    return out
+
+def _load_python_impl(dotted: str) -> Callable:
+    # dotted = "module:function"
+    if ":" not in dotted:
+        raise ValueError(f"Invalid python_impl '{dotted}'. Use 'module:function'")
+    mod, fn = dotted.split(":", 1)
+    m = importlib.import_module(mod)
+    f = getattr(m, fn)
+    return f
+
+def _compute_indicator_series_and_threshold(reg: IndicatorRegistry, spec: StrategySpec, filt: IndicatorFilter,
+                                            trigger_df: pd.DataFrame, anchor_df: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
+    ind = reg.get(filt.indicator_id)
+    impl = _load_python_impl(ind.python_impl)
+
+    if filt.timeframe == "anchor":
+        df = anchor_df
+    else:
+        df = trigger_df
+
+    close = df["close"].to_numpy(float)
+    high = df["high"].to_numpy(float)
+    low = df["low"].to_numpy(float)
+    vol = df["volume"].to_numpy(float)
+
+    # For MVP: use indicator spec defaults (or midpoints) to keep parity with Pine snippet parameters.
+    kwargs = {}
+    for p, cfg in (ind.parameters or {}).items():
+        if "default" in cfg and cfg["default"] is not None:
+            try:
+                kwargs[p] = float(cfg["default"]) if cfg.get("type") == "float" else int(float(cfg["default"]))
+            except Exception:
+                pass
+        else:
+            lo = cfg.get("min")
+            hi = cfg.get("max")
+            if lo is not None and hi is not None:
+                try:
+                    kwargs[p] = float(lo + hi) / 2.0
+                except Exception:
+                    pass
+
+    outputs = impl(close=close, high=high, low=low, volume=vol, **kwargs)
+    if filt.output not in outputs:
+        raise KeyError(
+            f"Indicator '{ind.indicator_id}' did not produce output '{filt.output}'. outputs={list(outputs.keys())}"
+        )
+    series = np.asarray(outputs[filt.output], dtype=float)
+
+    # Compute threshold series on the same timeframe as the series (critical for parity with Pine).
+    if getattr(filt, "mode", "quantile") == "absolute":
+        thr = np.full_like(series, float(getattr(filt, "threshold", 0.0)), dtype=float)
+    else:
+        q = float(getattr(filt, "quantile", 0.5))
+        q = max(0.0, min(1.0, q))
+        lookback = int(getattr(filt, "lookback", 500))
+        lookback = max(1, lookback)
+        thr = percentile_linear_interpolation(series, lookback, q * 100.0)
+
+    # If computed on anchor, align both series and thr to trigger.
+    if filt.timeframe == "anchor":
+        series = _align_anchor_to_trigger(anchor_df, trigger_df, series)
+        thr = _align_anchor_to_trigger(anchor_df, trigger_df, thr)
+
+    return series, thr
+
+def backtest_mtf_close_to_close(
+    trigger_df: pd.DataFrame,
+    anchor_df: pd.DataFrame,
+    symbol: str,
+    spec: StrategySpec,
+    commission_bps: float,
+    slippage_ticks: int = 0,
+    tick_size: float | None = None,
+    fill_mode: str = "same_bar_close",
+    notional: float = 100.0,
+    indicator_registry: IndicatorRegistry | None = None,
+) -> BacktestResult:
+    required_cols = {"timestamp", "open", "high", "low", "close", "volume"}
+    for df, nm in [(trigger_df, "trigger"), (anchor_df, "anchor")]:
+        missing = required_cols - set(df.columns)
+        if missing:
+            raise ValueError(f"Missing columns in {nm}: {missing}")
+
+    t_ts = trigger_df["timestamp"].to_numpy(np.int64)
+    t_close = trigger_df["close"].to_numpy(float)
+    t_high = trigger_df["high"].to_numpy(float)
+    t_low = trigger_df["low"].to_numpy(float)
+
+    a_close = anchor_df["close"].to_numpy(float)
+
+    # compute trend on anchor and align
+    a_ema_f = ema(a_close, int(spec.ema_fast))
+    a_ema_s = ema(a_close, int(spec.ema_slow))
+    ema_f = _align_anchor_to_trigger(anchor_df, trigger_df, a_ema_f)
+    ema_s = _align_anchor_to_trigger(anchor_df, trigger_df, a_ema_s)
+
+    # compute trigger indicators
+    r = rsi(t_close, int(spec.rsi_len))
+    a = atr(t_high, t_low, t_close, int(spec.atr_len))
+    z = zscore(t_close, int(spec.z_len)) if int(spec.z_len) > 0 else np.full_like(t_close, np.nan, dtype=float)
+
+    fee_rate = bps_to_rate(commission_bps)
+    slippage_ticks = int(slippage_ticks or 0)
+
+    trades: List[Trade] = []
+    pos = 0
+    entry_i = -1
+    entry_price = 0.0
+    entry_atr = 0.0
+
+    def next_i(i: int) -> int:
+        return i if fill_mode == "same_bar_close" else i + 1
+
+    # precompute extra filter series
+    extra_series = []
+    if indicator_registry and spec.extra_filters:
+        for f in spec.extra_filters:
+            s, thr = _compute_indicator_series_and_threshold(indicator_registry, spec, f, trigger_df, anchor_df)
+            extra_series.append((f, s, thr))
+
+    for i in range(len(trigger_df) - 1):
+        if np.isnan(ema_f[i]) or np.isnan(ema_s[i]) or np.isnan(r[i]) or np.isnan(a[i]):
+            continue
+
+        trend_up = ema_f[i] > ema_s[i]
+        trend_dn = ema_f[i] < ema_s[i]
+
+        z_ok_long = True
+        z_ok_short = True
+        if int(spec.z_len) > 0 and np.isfinite(z[i]):
+            z_ok_long = z[i] >= float(spec.z_entry)
+            z_ok_short = z[i] <= -float(spec.z_entry)
+
+        # extra filters: all must pass
+        extra_ok_long = True
+        extra_ok_short = True
+        for f, s, thr in extra_series:
+            v = s[i]
+            t = thr[i]
+            if np.isnan(v) or np.isnan(t):
+                continue
+            if f.comparator == ">=":
+                ok = v >= float(t)
+            else:
+                ok = v <= float(t)
+            # apply to both sides for MVP; can be extended to side-specific filters
+            extra_ok_long = extra_ok_long and ok
+            extra_ok_short = extra_ok_short and ok
+
+        long_signal = trend_up and (r[i] >= float(spec.rsi_long)) and z_ok_long and extra_ok_long
+        short_signal = trend_dn and (r[i] <= float(spec.rsi_short)) and z_ok_short and extra_ok_short
+
+        # exits (close-only)
+        if pos != 0:
+            sl = entry_price - pos * float(spec.sl_atr) * entry_atr
+            tp = entry_price + pos * float(spec.tp_atr) * entry_atr
+            exit_now = False
+            if pos == 1:
+                if t_close[i] <= sl or t_close[i] >= tp:
+                    exit_now = True
+            else:
+                if t_close[i] >= sl or t_close[i] <= tp:
+                    exit_now = True
+
+            if exit_now:
+                j = next_i(i)
+                if j >= len(trigger_df):
+                    break
+                exit_side = 'sell' if pos == 1 else 'buy'
+                exit_price = apply_slippage_ticks(t_close[j], tick_size, slippage_ticks, exit_side)
+                exit_price = round_to_tick(exit_price, tick_size, mode='nearest')
+                exit_price = float(exit_price)
+                exit_price = float(exit_price)
+                qty = safe_div(notional, entry_price)
+                pnl = (exit_price - entry_price) * qty * pos
+                fee = (entry_price * qty + exit_price * qty) * fee_rate
+                pnl_after = pnl - fee
+                r_unit = float(spec.sl_atr) * entry_atr * qty
+                pnl_r = pnl_after / r_unit if r_unit != 0 else 0.0
+                trades.append(Trade(symbol, spec.tf_trigger, int(t_ts[entry_i]), int(t_ts[j]),
+                                    "long" if pos==1 else "short",
+                                    float(entry_price), float(exit_price), float(pnl_after), float(pnl_r), float(fee)))
+                pos = 0
+                entry_i = -1
+                continue
+
+        # entries (single position)
+        if pos == 0:
+            if long_signal or short_signal:
+                j = next_i(i)
+                if j >= len(trigger_df):
+                    break
+                pos = 1 if long_signal else -1
+                entry_i = j
+                entry_side = 'buy' if pos == 1 else 'sell'
+                entry_price = apply_slippage_ticks(t_close[j], tick_size, slippage_ticks, entry_side)
+                entry_price = round_to_tick(entry_price, tick_size, mode='nearest')
+                entry_price = float(entry_price)
+                entry_atr = float(a[j]) if np.isfinite(a[j]) else float(a[i])
+
+    metrics = _compute_metrics(trades)
+    equity_curve = np.cumsum(np.array([t.pnl for t in trades], dtype=float)) if trades else np.array([], dtype=float)
+    return BacktestResult(trades=trades, equity_curve=equity_curve, metrics=metrics)

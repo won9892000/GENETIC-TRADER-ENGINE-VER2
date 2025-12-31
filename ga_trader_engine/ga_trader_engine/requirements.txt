@@ -1,0 +1,7 @@
+numpy>=1.24
+pandas>=2.0
+PyYAML>=6.0
+requests>=2.31
+typer>=0.9
+rich>=13.0
+python-dateutil>=2.9

@@ -1,0 +1,650 @@
+{
+  "created_at": null,
+  "size": 80,
+  "symbols": [
+    {
+      "symbol": "BTCUSDT",
+      "baseAsset": "BTC",
+      "quoteAsset": "USDT",
+      "tick_size": 0.1,
+      "step_size": 0.001,
+      "quote_volume_24h": 9969212327.55
+    },
+    {
+      "symbol": "ETHUSDT",
+      "baseAsset": "ETH",
+      "quoteAsset": "USDT",
+      "tick_size": 0.01,
+      "step_size": 0.001,
+      "quote_volume_24h": 7906409089.29
+    },
+    {
+      "symbol": "SOLUSDT",
+      "baseAsset": "SOL",
+      "quoteAsset": "USDT",
+      "tick_size": 0.01,
+      "step_size": 0.01,
+      "quote_volume_24h": 2202907023.8231
+    },
+    {
+      "symbol": "ZECUSDT",
+      "baseAsset": "ZEC",
+      "quoteAsset": "USDT",
+      "tick_size": 0.01,
+      "step_size": 0.001,
+      "quote_volume_24h": 832446890.54
+    },
+    {
+      "symbol": "LIGHTUSDT",
+      "baseAsset": "LIGHT",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 1.0,
+      "quote_volume_24h": 580470756.2067
+    },
+    {
+      "symbol": "XRPUSDT",
+      "baseAsset": "XRP",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 0.1,
+      "quote_volume_24h": 485001858.9772
+    },
+    {
+      "symbol": "WCTUSDT",
+      "baseAsset": "WCT",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 404194554.4909
+    },
+    {
+      "symbol": "BEATUSDT",
+      "baseAsset": "BEAT",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 1.0,
+      "quote_volume_24h": 379089990.93689
+    },
+    {
+      "symbol": "RIVERUSDT",
+      "baseAsset": "RIVER",
+      "quoteAsset": "USDT",
+      "tick_size": 0.001,
+      "step_size": 0.1,
+      "quote_volume_24h": 323024017.0526
+    },
+    {
+      "symbol": "DOGEUSDT",
+      "baseAsset": "DOGE",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 321752100.4755
+    },
+    {
+      "symbol": "BNBUSDT",
+      "baseAsset": "BNB",
+      "quoteAsset": "USDT",
+      "tick_size": 0.01,
+      "step_size": 0.01,
+      "quote_volume_24h": 301168749.983
+    },
+    {
+      "symbol": "TRADOORUSDT",
+      "baseAsset": "TRADOOR",
+      "quoteAsset": "USDT",
+      "tick_size": 0.001,
+      "step_size": 1.0,
+      "quote_volume_24h": 298137522.478
+    },
+    {
+      "symbol": "LITUSDT",
+      "baseAsset": "LIT",
+      "quoteAsset": "USDT",
+      "tick_size": 0.001,
+      "step_size": 0.1,
+      "quote_volume_24h": 282293143.82
+    },
+    {
+      "symbol": "LYNUSDT",
+      "baseAsset": "LYN",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 255883410.6665
+    },
+    {
+      "symbol": "SQDUSDT",
+      "baseAsset": "SQD",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 227131230.67574
+    },
+    {
+      "symbol": "ZBTUSDT",
+      "baseAsset": "ZBT",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 1.0,
+      "quote_volume_24h": 204288939.1221
+    },
+    {
+      "symbol": "ZRXUSDT",
+      "baseAsset": "ZRX",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 0.1,
+      "quote_volume_24h": 198012811.3142
+    },
+    {
+      "symbol": "SUIUSDT",
+      "baseAsset": "SUI",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 0.1,
+      "quote_volume_24h": 188102730.20487
+    },
+    {
+      "symbol": "PAXGUSDT",
+      "baseAsset": "PAXG",
+      "quoteAsset": "USDT",
+      "tick_size": 0.01,
+      "step_size": 0.001,
+      "quote_volume_24h": 182406679.684
+    },
+    {
+      "symbol": "TAKEUSDT",
+      "baseAsset": "TAKE",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 176734906.00332
+    },
+    {
+      "symbol": "ADAUSDT",
+      "baseAsset": "ADA",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 1.0,
+      "quote_volume_24h": 170845103.1456
+    },
+    {
+      "symbol": "1000PEPEUSDT",
+      "baseAsset": "1000PEPE",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-07,
+      "step_size": 1.0,
+      "quote_volume_24h": 164367597.1402849
+    },
+    {
+      "symbol": "ATUSDT",
+      "baseAsset": "AT",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 155821493.23693
+    },
+    {
+      "symbol": "XPLUSDT",
+      "baseAsset": "XPL",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 1.0,
+      "quote_volume_24h": 152863803.7705
+    },
+    {
+      "symbol": "LINKUSDT",
+      "baseAsset": "LINK",
+      "quoteAsset": "USDT",
+      "tick_size": 0.001,
+      "step_size": 0.01,
+      "quote_volume_24h": 135679114.995
+    },
+    {
+      "symbol": "AVAXUSDT",
+      "baseAsset": "AVAX",
+      "quoteAsset": "USDT",
+      "tick_size": 0.001,
+      "step_size": 1.0,
+      "quote_volume_24h": 135300839.451
+    },
+    {
+      "symbol": "HYPEUSDT",
+      "baseAsset": "HYPE",
+      "quoteAsset": "USDT",
+      "tick_size": 0.001,
+      "step_size": 0.01,
+      "quote_volume_24h": 134056232.85733
+    },
+    {
+      "symbol": "NIGHTUSDT",
+      "baseAsset": "NIGHT",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 126562824.96255
+    },
+    {
+      "symbol": "CCUSDT",
+      "baseAsset": "CC",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 119134134.84434
+    },
+    {
+      "symbol": "CYBERUSDT",
+      "baseAsset": "CYBER",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 0.1,
+      "quote_volume_24h": 118399071.05948
+    },
+    {
+      "symbol": "PIPPINUSDT",
+      "baseAsset": "PIPPIN",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 108111648.10076
+    },
+    {
+      "symbol": "BCHUSDT",
+      "baseAsset": "BCH",
+      "quoteAsset": "USDT",
+      "tick_size": 0.01,
+      "step_size": 0.001,
+      "quote_volume_24h": 107141797.87
+    },
+    {
+      "symbol": "ENAUSDT",
+      "baseAsset": "ENA",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 1.0,
+      "quote_volume_24h": 104771952.5402
+    },
+    {
+      "symbol": "POLYXUSDT",
+      "baseAsset": "POLYX",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 103961004.10583
+    },
+    {
+      "symbol": "CHZUSDT",
+      "baseAsset": "CHZ",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 93251332.94151
+    },
+    {
+      "symbol": "FILUSDT",
+      "baseAsset": "FIL",
+      "quoteAsset": "USDT",
+      "tick_size": 0.001,
+      "step_size": 0.1,
+      "quote_volume_24h": 85154113.373
+    },
+    {
+      "symbol": "ASTERUSDT",
+      "baseAsset": "ASTER",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 1.0,
+      "quote_volume_24h": 79369608.9351
+    },
+    {
+      "symbol": "WIFUSDT",
+      "baseAsset": "WIF",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 0.1,
+      "quote_volume_24h": 78937765.35266
+    },
+    {
+      "symbol": "AUCTIONUSDT",
+      "baseAsset": "AUCTION",
+      "quoteAsset": "USDT",
+      "tick_size": 0.001,
+      "step_size": 0.01,
+      "quote_volume_24h": 77642735.12698
+    },
+    {
+      "symbol": "RAVEUSDT",
+      "baseAsset": "RAVE",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 77424519.6162
+    },
+    {
+      "symbol": "LTCUSDT",
+      "baseAsset": "LTC",
+      "quoteAsset": "USDT",
+      "tick_size": 0.01,
+      "step_size": 0.001,
+      "quote_volume_24h": 70156924.06
+    },
+    {
+      "symbol": "HUSDT",
+      "baseAsset": "H",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 68937848.72316
+    },
+    {
+      "symbol": "IRUSDT",
+      "baseAsset": "IR",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 65392916.00542
+    },
+    {
+      "symbol": "NEARUSDT",
+      "baseAsset": "NEAR",
+      "quoteAsset": "USDT",
+      "tick_size": 0.001,
+      "step_size": 1.0,
+      "quote_volume_24h": 64717436.512
+    },
+    {
+      "symbol": "FARTCOINUSDT",
+      "baseAsset": "FARTCOIN",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 0.1,
+      "quote_volume_24h": 64019508.68772
+    },
+    {
+      "symbol": "ZKPUSDT",
+      "baseAsset": "ZKP",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 63645156.22326
+    },
+    {
+      "symbol": "UNIUSDT",
+      "baseAsset": "UNI",
+      "quoteAsset": "USDT",
+      "tick_size": 0.001,
+      "step_size": 1.0,
+      "quote_volume_24h": 62818106.196
+    },
+    {
+      "symbol": "RVVUSDT",
+      "baseAsset": "RVV",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-06,
+      "step_size": 1.0,
+      "quote_volume_24h": 61775300.255763
+    },
+    {
+      "symbol": "PUMPUSDT",
+      "baseAsset": "PUMP",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-06,
+      "step_size": 1.0,
+      "quote_volume_24h": 58435411.812714
+    },
+    {
+      "symbol": "TAOUSDT",
+      "baseAsset": "TAO",
+      "quoteAsset": "USDT",
+      "tick_size": 0.01,
+      "step_size": 0.001,
+      "quote_volume_24h": 57810996.43
+    },
+    {
+      "symbol": "AAVEUSDT",
+      "baseAsset": "AAVE",
+      "quoteAsset": "USDT",
+      "tick_size": 0.01,
+      "step_size": 0.1,
+      "quote_volume_24h": 53515017.367
+    },
+    {
+      "symbol": "APTUSDT",
+      "baseAsset": "APT",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 0.1,
+      "quote_volume_24h": 53212734.96792
+    },
+    {
+      "symbol": "PIEVERSEUSDT",
+      "baseAsset": "PIEVERSE",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 1.0,
+      "quote_volume_24h": 53128847.0879
+    },
+    {
+      "symbol": "1000SHIBUSDT",
+      "baseAsset": "1000SHIB",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-06,
+      "step_size": 1.0,
+      "quote_volume_24h": 48913639.335474
+    },
+    {
+      "symbol": "0GUSDT",
+      "baseAsset": "0G",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 1.0,
+      "quote_volume_24h": 47266077.8034
+    },
+    {
+      "symbol": "DOTUSDT",
+      "baseAsset": "DOT",
+      "quoteAsset": "USDT",
+      "tick_size": 0.001,
+      "step_size": 0.1,
+      "quote_volume_24h": 46550253.759
+    },
+    {
+      "symbol": "WLDUSDT",
+      "baseAsset": "WLD",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 1.0,
+      "quote_volume_24h": 46130654.9095
+    },
+    {
+      "symbol": "AVNTUSDT",
+      "baseAsset": "AVNT",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 1.0,
+      "quote_volume_24h": 45551959.13874
+    },
+    {
+      "symbol": "ONTUSDT",
+      "baseAsset": "ONT",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 0.1,
+      "quote_volume_24h": 45274032.0028
+    },
+    {
+      "symbol": "RECALLUSDT",
+      "baseAsset": "RECALL",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 1.0,
+      "quote_volume_24h": 44599724.0953
+    },
+    {
+      "symbol": "MONUSDT",
+      "baseAsset": "MON",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 44227566.53355
+    },
+    {
+      "symbol": "TSTUSDT",
+      "baseAsset": "TST",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 42141676.46431
+    },
+    {
+      "symbol": "GIGGLEUSDT",
+      "baseAsset": "GIGGLE",
+      "quoteAsset": "USDT",
+      "tick_size": 0.01,
+      "step_size": 0.01,
+      "quote_volume_24h": 41863056.8571
+    },
+    {
+      "symbol": "XLMUSDT",
+      "baseAsset": "XLM",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 40244515.41409
+    },
+    {
+      "symbol": "HBARUSDT",
+      "baseAsset": "HBAR",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 38551806.82824
+    },
+    {
+      "symbol": "BREVUSDT",
+      "baseAsset": "BREV",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 1.0,
+      "quote_volume_24h": 37979099.3869
+    },
+    {
+      "symbol": "TRUMPUSDT",
+      "baseAsset": "TRUMP",
+      "quoteAsset": "USDT",
+      "tick_size": 0.001,
+      "step_size": 0.01,
+      "quote_volume_24h": 37248065.82343
+    },
+    {
+      "symbol": "ICPUSDT",
+      "baseAsset": "ICP",
+      "quoteAsset": "USDT",
+      "tick_size": 0.001,
+      "step_size": 1.0,
+      "quote_volume_24h": 36296924.195
+    },
+    {
+      "symbol": "FOLKSUSDT",
+      "baseAsset": "FOLKS",
+      "quoteAsset": "USDT",
+      "tick_size": 0.001,
+      "step_size": 0.1,
+      "quote_volume_24h": 35168465.4124
+    },
+    {
+      "symbol": "CRVUSDT",
+      "baseAsset": "CRV",
+      "quoteAsset": "USDT",
+      "tick_size": 0.001,
+      "step_size": 0.1,
+      "quote_volume_24h": 35164015.376
+    },
+    {
+      "symbol": "TRXUSDT",
+      "baseAsset": "TRX",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 34379594.65917
+    },
+    {
+      "symbol": "TONUSDT",
+      "baseAsset": "TON",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 0.1,
+      "quote_volume_24h": 34101753.18804
+    },
+    {
+      "symbol": "QTUMUSDT",
+      "baseAsset": "QTUM",
+      "quoteAsset": "USDT",
+      "tick_size": 0.001,
+      "step_size": 0.1,
+      "quote_volume_24h": 33450044.38
+    },
+    {
+      "symbol": "CYSUSDT",
+      "baseAsset": "CYS",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 1.0,
+      "quote_volume_24h": 33203126.1367
+    },
+    {
+      "symbol": "TIAUSDT",
+      "baseAsset": "TIA",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 1.0,
+      "quote_volume_24h": 33169360.6492
+    },
+    {
+      "symbol": "ACTUSDT",
+      "baseAsset": "ACT",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-05,
+      "step_size": 1.0,
+      "quote_volume_24h": 32821781.08365
+    },
+    {
+      "symbol": "PENGUUSDT",
+      "baseAsset": "PENGU",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-06,
+      "step_size": 1.0,
+      "quote_volume_24h": 32438831.169117
+    },
+    {
+      "symbol": "ZENUSDT",
+      "baseAsset": "ZEN",
+      "quoteAsset": "USDT",
+      "tick_size": 0.001,
+      "step_size": 0.1,
+      "quote_volume_24h": 31292909.686
+    },
+    {
+      "symbol": "XVGUSDT",
+      "baseAsset": "XVG",
+      "quoteAsset": "USDT",
+      "tick_size": 1e-06,
+      "step_size": 1.0,
+      "quote_volume_24h": 30861211.6589366
+    },
+    {
+      "symbol": "WALUSDT",
+      "baseAsset": "WAL",
+      "quoteAsset": "USDT",
+      "tick_size": 0.0001,
+      "step_size": 1.0,
+      "quote_volume_24h": 30233146.2389
+    }
+  ],
+  "notes": {
+    "universe_provider": "binance_futures_24h_volume",
+    "binance_base_url": "https://fapi.binance.com"
+  }
+}

@@ -1,0 +1,20 @@
+indicator_id: atrpct
+name: ATR% (ATR / Close)
+description: >
+  ATR normalized by price. Scale-free volatility measure for cross-asset robustness.
+author: "GA Trader Engine"
+license: "MIT (engine code)"
+source: "built-in"
+timeframe: trigger
+parameters:
+  length:
+    type: int
+    min: 10
+    max: 30
+outputs:
+  atr_pct:
+    kind: value
+    scale: [0.0, 0.1]
+python_impl: "ga_trader.indicators.python_impl.volatility:atrpct"
+pine_snippet: |
+  atr_pct = ta.atr(length) / close

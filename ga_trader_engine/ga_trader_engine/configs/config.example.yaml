@@ -1,0 +1,94 @@
+project:
+  run_root: runs
+  run_name: latest
+
+validation:
+  parity_symbol: BTCUSDT  # optional: symbol for Python↔TV trade export/validation
+
+universe:
+  size: 80           # pick 50~100
+  volume_provider: binance_futures_24h
+    # you can pin a manual list to bypass providers:
+  manual_symbols: []  # e.g. ["BTC", "ETH"]
+
+binance:
+  base_url: "https://fapi.binance.com"
+  klines_endpoint: "/fapi/v1/klines"
+  exchange_info_endpoint: "/fapi/v1/exchangeInfo"
+  rate_limit_sleep_sec: 0.15
+
+data:
+  timeframes: ["3m", "5m", "15m"]
+  lookback_days: 180
+  store_dir: data
+  # dataset split for fitness computation
+  split:
+    is: 0.6
+    oos: 0.2
+    hold: 0.2
+
+execution:
+  fill: same_bar_close     # next_bar_close (recommended) or same_bar_close (risk of lookahead)
+  pyramiding: 0
+  slippage_ticks: 0
+
+fees:
+  commission_bps: 4.0      # user changeable
+
+risk:
+  sizing: fixed_notional   # fixed_notional or atr_risk
+  fixed_notional: 100.0
+  atr_risk_pct: 0.01       # used for atr_risk
+
+ga:
+  population: 160
+  generations: 60
+  elite_ratio: 0.05
+  tournament_k: 5
+  crossover_rate: 0.7
+  mutation_rate: 0.18
+  seed: 42
+  topk: 20
+
+fitness:
+  mode: weighted_sum       # weighted_sum | constraints | pareto
+  # Weighted sum: metrics are normalized to [0,1] where possible
+  weights:
+    oos_expectancy: 0.30
+    oos_profit_factor: 0.15
+    oos_win_rate: 0.15
+    oos_trades_per_month: 0.10
+    oos_max_drawdown: -0.20    # negative = penalty
+    is_oos_gap: -0.10          # penalty for overfitting
+  constraints:
+    min_oos_trades_per_month: 20
+    min_oos_win_rate: 0.50
+    min_oos_profit_factor: 1.05
+    max_oos_max_drawdown: 0.35
+
+strategy_space:
+  filter_quantile: [0.1, 0.9]
+  filter_lookback: [200, 1500]
+  filter_absolute_prob: 0.25   # 0..1: allow absolute thresholds when output has scale
+  # Strategy family + extra open-source indicator filters.
+  # max_extra_filters controls how many external indicator filters GA may attach.
+  max_extra_filters: 2
+  ema_fast: [5, 30]
+  ema_slow: [20, 200]
+  rsi_len: [7, 28]
+  rsi_long: [50, 70]       # long trigger threshold
+  rsi_short: [30, 50]      # short trigger threshold
+  atr_len: [10, 21]
+  sl_atr: [0.6, 3.0]
+  tp_atr: [0.6, 5.0]
+  # optional z-score filter; 0 disables
+  z_len: [0, 120]          # 0=off else window
+  z_entry: [0.0, 2.5]      # if z_len>0: require z >= z_entry for long and z <= -z_entry for short
+
+
+fitness:
+  pareto:
+    objectives:
+      - {key: oos_expectancy, direction: max}
+      - {key: oos_max_drawdown, direction: min}
+      - {key: oos_trades_per_month, direction: max}

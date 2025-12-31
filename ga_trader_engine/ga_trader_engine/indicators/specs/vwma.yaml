@@ -1,0 +1,21 @@
+indicator_id: vwma
+name: VWMA (Volume Weighted MA)
+description: >
+  VWMA and distance-to-price as a scale-free feature (distance is normalized by ATR).
+author: "GA Trader Engine"
+license: "MIT (engine code)"
+source: "built-in"
+timeframe: trigger
+parameters:
+  length:
+    type: int
+    min: 10
+    max: 60
+outputs:
+  dist_atr:
+    kind: value
+    scale: [0.0, 3.0]
+python_impl: "ga_trader.indicators.python_impl.trend:vwma_dist_atr"
+pine_snippet: |
+  vw = ta.vwma(close, length)
+  dist_atr = math.abs(close - vw) / ta.atr(14)
