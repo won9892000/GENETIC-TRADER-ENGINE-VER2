@@ -1,22 +1,27 @@
 from __future__ import annotations
 import numpy as np
+import pandas as pd
+
 
 def sma(x: np.ndarray, length: int) -> np.ndarray:
     if length <= 0:
         raise ValueError("length must be >0")
+    n = len(x)
     out = np.full_like(x, np.nan, dtype=float)
-    c = np.cumsum(np.nan_to_num(x, nan=0.0))
-    # count non-nan
-    nn = np.cumsum(~np.isnan(x)).astype(float)
-    for i in range(len(x)):
-        j = i - length + 1
-        if j < 0:
-            continue
-        s = c[i] - (c[j-1] if j > 0 else 0.0)
-        k = nn[i] - (nn[j-1] if j > 0 else 0.0)
-        if k == 0:
-            continue
-        out[i] = s / k
+    if n == 0:
+        return out
+    x0 = np.nan_to_num(x, nan=0.0)
+    cs = np.cumsum(x0)
+    cn = np.cumsum(~np.isnan(x)).astype(float)
+
+    i = np.arange(n)
+    j = i - length + 1
+    valid = j >= 0
+    # sum and count for window ending at i
+    sum_w = cs - np.where(j > 0, cs[j - 1], 0.0)
+    count = cn - np.where(j > 0, cn[j - 1], 0.0)
+    mask = valid & (count > 0)
+    out[mask] = sum_w[mask] / count[mask]
     return out
 
 def ema(x: np.ndarray, length: int) -> np.ndarray:
@@ -105,16 +110,30 @@ def stdev(x: np.ndarray, length: int) -> np.ndarray:
     # Pine ta.stdev uses population stdev by default (ddof=0)
     if length <= 0:
         raise ValueError("length must be >0")
+    n = len(x)
     out = np.full_like(x, np.nan, dtype=float)
-    for i in range(len(x)):
-        j = i - length + 1
-        if j < 0:
-            continue
-        w = x[j:i+1]
-        w = w[~np.isnan(w)]
-        if len(w) == 0:
-            continue
-        out[i] = float(np.std(w, ddof=0))
+    if n == 0:
+        return out
+    x0 = np.nan_to_num(x, nan=0.0)
+    cs = np.cumsum(x0)
+    cs2 = np.cumsum(x0 * x0)
+    cn = np.cumsum(~np.isnan(x)).astype(float)
+
+    i = np.arange(n)
+    j = i - length + 1
+    valid = j >= 0
+    sum_w = cs - np.where(j > 0, cs[j - 1], 0.0)
+    sumsq_w = cs2 - np.where(j > 0, cs2[j - 1], 0.0)
+    count = cn - np.where(j > 0, cn[j - 1], 0.0)
+
+    mask = valid & (count > 0)
+    # var = E[x^2] - (E[x])^2
+    mean = np.zeros_like(out)
+    mean[mask] = sum_w[mask] / count[mask]
+    var = np.zeros_like(out)
+    var[mask] = (sumsq_w[mask] / count[mask]) - (mean[mask] ** 2)
+    var = np.where(var < 0, 0.0, var)
+    out[mask] = np.sqrt(var[mask])
     return out
 
 def zscore(x: np.ndarray, length: int) -> np.ndarray:
@@ -134,17 +153,10 @@ def percentile_linear_interpolation(x: np.ndarray, length: int, percentile: floa
     if length <= 0:
         raise ValueError("length must be >0")
     p = float(percentile) / 100.0
-    out = np.full_like(x, np.nan, dtype=float)
-    for i in range(len(x)):
-        j = i - length + 1
-        if j < 0:
-            continue
-        w = x[j:i+1]
-        w = w[~np.isnan(w)]
-        if len(w) == 0:
-            continue
-        try:
-            out[i] = float(np.quantile(w, p, method="linear"))
-        except TypeError:
-            out[i] = float(np.quantile(w, p, interpolation="linear"))
+    s = pd.Series(x)
+    try:
+        out = s.rolling(window=length, min_periods=length).quantile(p, interpolation='linear').to_numpy(dtype=float)
+    except TypeError:
+        # pandas older versions use method= instead of interpolation=
+        out = s.rolling(window=length, min_periods=length).quantile(p, method='linear').to_numpy(dtype=float)
     return out

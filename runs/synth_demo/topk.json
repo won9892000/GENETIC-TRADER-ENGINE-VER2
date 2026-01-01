@@ -1,5 +1,36 @@
 [
   {
+    "fitness": 1.6021100617892459,
+    "spec": {
+      "tf_anchor": "5m",
+      "tf_trigger": "5m",
+      "ema_fast": 10,
+      "ema_slow": 48,
+      "rsi_len": 19,
+      "rsi_long": 58.43396708953489,
+      "rsi_short": 49.24038166824219,
+      "atr_len": 20,
+      "sl_atr": 1.4079441280644982,
+      "tp_atr": 1.985826631470651,
+      "z_len": 21,
+      "z_entry": 1.593957564754556,
+      "extra_filters": []
+    },
+    "metrics": {
+      "is_expectancy": -0.18641325057742192,
+      "is_profit_factor": 0.7427769645957789,
+      "is_win_rate": 0.3963963963963964,
+      "is_trades_per_month": 33.5,
+      "is_max_drawdown": 9.725615318836844,
+      "oos_expectancy": 0.16549316854455232,
+      "oos_profit_factor": 1.864590862584236,
+      "oos_win_rate": 0.5763888888888888,
+      "oos_trades_per_month": 8.5,
+      "oos_max_drawdown": 1.4726384578069402,
+      "is_oos_gap": 0.35190641912197423
+    }
+  },
+  {
     "fitness": 1.230896240980853,
     "spec": {
       "tf_anchor": "15m",
@@ -41,9 +72,9 @@
       "rsi_long": 67.2796893939703,
       "rsi_short": 35.56842129027794,
       "atr_len": 20,
-      "sl_atr": 2.0,
+      "sl_atr": 1.9810539134016603,
       "tp_atr": 1.985826631470651,
-      "z_len": 25,
+      "z_len": 22,
       "z_entry": 1.593957564754556,
       "extra_filters": []
     },
@@ -62,96 +93,65 @@
     }
   },
   {
-    "fitness": 1.156311197159909,
+    "fitness": 1.1609317873446159,
     "spec": {
       "tf_anchor": "15m",
       "tf_trigger": "5m",
-      "ema_fast": 10,
-      "ema_slow": 48,
+      "ema_fast": 12,
+      "ema_slow": 49,
       "rsi_len": 19,
       "rsi_long": 67.2796893939703,
       "rsi_short": 35.56842129027794,
       "atr_len": 20,
-      "sl_atr": 1.7808891296193912,
+      "sl_atr": 1.7579955554366817,
       "tp_atr": 1.897173812836158,
       "z_len": 28,
-      "z_entry": 0.8004968497078135,
+      "z_entry": 1.593957564754556,
       "extra_filters": []
     },
     "metrics": {
-      "is_expectancy": 0.2398242333089795,
-      "is_profit_factor": 1.7387723484873676,
-      "is_win_rate": 0.606060606060606,
-      "is_trades_per_month": 7.0,
-      "is_max_drawdown": 0.6758104701256441,
-      "oos_expectancy": -0.10435513064652596,
+      "is_expectancy": 0.21912123416815762,
+      "is_profit_factor": 1.7021853236040894,
+      "is_win_rate": 0.5833333333333333,
+      "is_trades_per_month": 5.5,
+      "is_max_drawdown": 0.5937509611831591,
+      "oos_expectancy": -0.0943737374764475,
       "oos_profit_factor": 499.5,
       "oos_win_rate": 0.5,
       "oos_trades_per_month": 1.5,
       "oos_max_drawdown": 0.5951590658851251,
-      "is_oos_gap": 0.34417936395550547
+      "is_oos_gap": 0.31349497164460516
     }
   },
   {
-    "fitness": 0.8329562798541694,
+    "fitness": 1.091047115072115,
     "spec": {
       "tf_anchor": "15m",
       "tf_trigger": "5m",
       "ema_fast": 10,
       "ema_slow": 48,
-      "rsi_len": 20,
-      "rsi_long": 66.19099775154312,
-      "rsi_short": 35.56842129027794,
-      "atr_len": 20,
-      "sl_atr": 1.9810539134016603,
-      "tp_atr": 1.897173812836158,
-      "z_len": 25,
-      "z_entry": 0.8004968497078135,
-      "extra_filters": []
-    },
-    "metrics": {
-      "is_expectancy": -0.10022181700082307,
-      "is_profit_factor": 0.8218539577184674,
-      "is_win_rate": 0.43939393939393934,
-      "is_trades_per_month": 7.0,
-      "is_max_drawdown": 1.6602214245848883,
-      "oos_expectancy": -0.21217742998583505,
-      "oos_profit_factor": 499.5,
-      "oos_win_rate": 0.5,
-      "oos_trades_per_month": 2.0,
-      "oos_max_drawdown": 1.2511628976387033,
-      "is_oos_gap": 0.11195561298501198
-    }
-  },
-  {
-    "fitness": 0.8250752820840116,
-    "spec": {
-      "tf_anchor": "5m",
-      "tf_trigger": "5m",
-      "ema_fast": 11,
-      "ema_slow": 48,
       "rsi_len": 19,
       "rsi_long": 67.2796893939703,
-      "rsi_short": 48.0859354908408,
+      "rsi_short": 35.166664476190824,
       "atr_len": 20,
-      "sl_atr": 1.7681396189296397,
-      "tp_atr": 1.811013933320857,
-      "z_len": 20,
-      "z_entry": 1.7803458577271865,
+      "sl_atr": 1.8296047270222406,
+      "tp_atr": 1.985826631470651,
+      "z_len": 21,
+      "z_entry": 1.0988798182880748,
       "extra_filters": []
     },
     "metrics": {
-      "is_expectancy": 0.055791104849299625,
-      "is_profit_factor": 1.2148884910944047,
-      "is_win_rate": 0.5666666666666667,
-      "is_trades_per_month": 25.0,
-      "is_max_drawdown": 3.090157261342609,
-      "oos_expectancy": -0.015241718582615069,
-      "oos_profit_factor": 1.1124581313274529,
-      "oos_win_rate": 0.5238095238095238,
-      "oos_trades_per_month": 6.5,
-      "oos_max_drawdown": 2.2832134430991027,
-      "is_oos_gap": 0.0710328234319147
+      "is_expectancy": -0.10452514316505868,
+      "is_profit_factor": 0.8274936498876392,
+      "is_win_rate": 0.41666666666666663,
+      "is_trades_per_month": 6.5,
+      "is_max_drawdown": 1.5531717408140289,
+      "oos_expectancy": -0.0021587604504495483,
+      "oos_profit_factor": 499.5,
+      "oos_win_rate": 0.5,
+      "oos_trades_per_month": 1.5,
+      "oos_max_drawdown": 0.5059088667694258,
+      "is_oos_gap": 0.10236638271460913
     }
   }
 ]
