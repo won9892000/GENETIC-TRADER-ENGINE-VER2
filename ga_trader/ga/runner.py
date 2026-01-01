@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Callable
 import random
 import numpy as np
 import pandas as pd
@@ -16,6 +16,7 @@ from ga_trader.utils import ensure_dir, save_json
 from ga_trader.indicators.registry import IndicatorRegistry
 from ga_trader.strategy.spec import StrategySpec, strategy_spec_from_dict
 from ga_trader.ga.nsga2 import nsga2_select
+from ga_trader.ta.core import ema, rsi, atr, zscore
 
 def _trade_to_dict(t) -> dict:
     return {
@@ -75,7 +76,7 @@ def _proc_score(g):
     f, extra = evaluate_genome(g, _proc_ctx, _proc_fcfg)
     return (g, f.fitness, extra)
 
-def evaluate_genome(g: Genome, ctx: EvalContext, fitness_cfg: Dict[str, Any]) -> Tuple[FitnessResult, Dict[str, Any]]:
+def evaluate_genome(g: Genome, ctx: EvalContext, fitness_cfg: Dict[str, Any], precomputed: Dict = None) -> Tuple[FitnessResult, Dict[str, Any]]:
     spec = g.to_spec()
     agg = {"is": [], "oos": []}
 
@@ -112,6 +113,7 @@ def evaluate_genome(g: Genome, ctx: EvalContext, fitness_cfg: Dict[str, Any]) ->
                 notional=ctx.notional,
                 indicator_registry=ctx.indicators,
                 use_numba=bool(ctx.use_numba),
+                precomputed_indicators=precomputed,
             )
             agg[part].append(bt.metrics)
 
@@ -165,11 +167,76 @@ def run_ga(
     workers: int | None = None,
     cache_file: str | None = None,
     use_processes: bool = False,
+    progress_callback: Callable[[int, float, dict], None] | None = None,
 ):
     rng = random.Random(int(rng_seed))
     ensure_dir(out_dir)
 
     reg = ctx.indicators
+
+    # Validate strategy space has required keys to build genomes
+    required_keys = [
+        "ema_fast",
+        "ema_slow",
+        "rsi_len",
+        "rsi_long",
+        "rsi_short",
+        "atr_len",
+        "sl_atr",
+        "tp_atr",
+        "z_len",
+        "z_entry",
+    ]
+    missing = [k for k in required_keys if k not in space]
+    if missing:
+        raise ValueError(f"strategy_space missing required keys: {missing}. Please provide a valid 'strategy_space' in your config.")
+
+    # Precompute indicator series for values in strategy_space ranges to avoid recomputing per genome
+    def _build_indicator_cache():
+        cache = {}
+        # integer ranges for periods
+        try:
+            ef_lo, ef_hi = int(space["ema_fast"][0]), int(space["ema_fast"][1])
+            es_lo, es_hi = int(space["ema_slow"][0]), int(space["ema_slow"][1])
+        except Exception:
+            ef_lo, ef_hi, es_lo, es_hi = 5, 30, 20, 80
+        ema_periods = set(range(min(ef_lo, es_lo), max(ef_hi, es_hi) + 1))
+        # rsi
+        try:
+            r_lo, r_hi = int(space["rsi_len"][0]), int(space["rsi_len"][1])
+        except Exception:
+            r_lo, r_hi = 7, 28
+        rsi_periods = set(range(r_lo, r_hi + 1))
+        # atr
+        try:
+            a_lo, a_hi = int(space["atr_len"][0]), int(space["atr_len"][1])
+        except Exception:
+            a_lo, a_hi = 10, 21
+        atr_periods = set(range(a_lo, a_hi + 1))
+        # z
+        try:
+            z_lo, z_hi = int(space.get("z_len", [0, 0])[0]), int(space.get("z_len", [0, 0])[1])
+        except Exception:
+            z_lo, z_hi = 0, 0
+        z_periods = set(range(max(1, z_lo), z_hi + 1))
+
+        for sym, tmap in ctx.data.items():
+            for tf, df in tmap.items():
+                close = df["close"].to_numpy(float)
+                high = df["high"].to_numpy(float)
+                low = df["low"].to_numpy(float)
+                for p in ema_periods:
+                    cache[(sym, tf, "ema", int(p))] = ema(close, int(p))
+                for p in rsi_periods:
+                    cache[(sym, tf, "rsi", int(p))] = rsi(close, int(p))
+                for p in atr_periods:
+                    cache[(sym, tf, "atr", int(p))] = atr(high, low, close, int(p))
+                for p in z_periods:
+                    cache[(sym, tf, "z", int(p))] = zscore(close, int(p))
+        return cache
+
+    # Use a lazy precomputed cache: values will be computed on first demand inside backtest
+    indicator_cache = {}
 
     pop = [random_genome(space, rng, ctx.timeframes, reg) for _ in range(population)]
     history = []
@@ -197,7 +264,8 @@ def run_ga(
         with cache_lock:
             if key in scored_cache:
                 return scored_cache[key][0], scored_cache[key][1]
-        fit, extra = evaluate_genome(g, ctx, fitness_cfg)
+        # Pass precomputed indicator cache to speed up evaluations (threads/serial only)
+        fit, extra = evaluate_genome(g, ctx, fitness_cfg, precomputed=indicator_cache)
         with cache_lock:
             scored_cache[key] = (fit.fitness, {"fitness_details": fit.details, **extra})
             return scored_cache[key][0], scored_cache[key][1]
@@ -265,6 +333,17 @@ def run_ga(
             "best_spec": best[2]["spec"],
             "best_metrics": best[2]["metrics"],
         })
+
+        # progress output for CLI and optional progress callback for UIs
+        try:
+            print(f"Gen {gen+1}/{generations} best={float(best[1]):.6f}")
+        except Exception:
+            pass
+        if progress_callback:
+            try:
+                progress_callback(gen, float(best[1]), best[2]["spec"])
+            except Exception:
+                pass
 
         elite_n = max(1, int(population * elite_ratio))
         elites = [x[0] for x in scored[:elite_n]]
@@ -354,6 +433,7 @@ def run_ga(
                 notional=float(ctx.notional),
                 indicator_registry=ctx.indicators,
                 use_numba=bool(ctx.use_numba),
+                precomputed_indicators=indicator_cache,
             )
             payload = {
                 "rank": rank,

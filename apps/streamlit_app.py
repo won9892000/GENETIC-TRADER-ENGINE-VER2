@@ -138,6 +138,38 @@ if st.button("Run GA now"):
         fcfg = cfg.raw.get("fitness", {})
         space = cfg.raw.get("strategy_space", {})
 
+        # If strategy_space is missing or incomplete, attempt to fallback to example config and warn the user.
+        required_keys = [
+            "ema_fast",
+            "ema_slow",
+            "rsi_len",
+            "rsi_long",
+            "rsi_short",
+            "atr_len",
+            "sl_atr",
+            "tp_atr",
+            "z_len",
+            "z_entry",
+        ]
+        missing = [k for k in required_keys if k not in space]
+        if missing:
+            try:
+                example = Config.load(CONFIG_DIR / "config.example.yaml")
+                example_space = example.raw.get("strategy_space", {})
+                # merge missing keys from example_space
+                for k in missing:
+                    if k in example_space:
+                        space[k] = example_space[k]
+                still_missing = [k for k in required_keys if k not in space]
+                if still_missing:
+                    st.error(f"Config {cfg_path.name} is missing strategy_space entries: {still_missing}. Please fix your config.")
+                    st.stop()
+                else:
+                    st.warning(f"Config {cfg_path.name} was missing some strategy_space entries: {missing}. Filled from config.example.yaml defaults.")
+            except Exception as exc:
+                st.error(f"Failed to load fallback strategy_space from config.example.yaml: {exc}")
+                st.stop()
+
         run_root = Path(cfg.raw.get("project", {}).get("run_root", "runs"))
         out_dir = run_root / run_name
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -163,13 +195,24 @@ if st.button("Run GA now"):
         )
 
         st.info("Starting GA (this will run in-process). This may take a while for large configs.")
+        gens = int(gcfg.get("generations", 60))
+        status_box = st.empty()
+        prog = st.progress(0)
+
+        def progress_cb(gen, best_fitness, best_spec):
+            try:
+                status_box.info(f"Gen {gen+1}/{gens}  best={best_fitness:.4f}")
+                prog.progress(min(100, int(100 * (gen + 1) / max(1, gens))))
+            except Exception:
+                pass
+
         with st.spinner("Running GA..."):
             run_ga(
                 space=space,
                 ctx=ctx,
                 fitness_cfg=fcfg,
                 population=int(gcfg.get("population", 160)),
-                generations=int(gcfg.get("generations", 60)),
+                generations=gens,
                 elite_ratio=float(gcfg.get("elite_ratio", 0.05)),
                 tournament_k=int(gcfg.get("tournament_k", 5)),
                 crossover_rate=float(gcfg.get("crossover_rate", 0.7)),
@@ -180,6 +223,7 @@ if st.button("Run GA now"):
                 workers=(None if workers == 0 else int(workers)),
                 cache_file=(cache_file or None),
                 use_processes=use_processes,
+                progress_callback=progress_cb,
             )
 
         st.success(f"GA finished. Results written to: {out_dir}")

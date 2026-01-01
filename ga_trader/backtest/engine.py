@@ -81,9 +81,22 @@ def _align_anchor_to_trigger(anchor_df: pd.DataFrame, trigger_df: pd.DataFrame, 
     # find insertion index to keep a_ts sorted; subtract 1 to get last index <= t_ts
     idx = np.searchsorted(a_ts, t_ts, side='right') - 1
     out = np.full_like(t_ts, np.nan, dtype=float)
-    valid = (idx >= 0) & (idx < len(a_ts)) & (a_ts[idx] <= t_ts)
-    if np.any(valid):
-        out[valid] = series[idx[valid]]
+
+    # mask positions where idx refers to a valid anchor index and also within the series length
+    mask = (idx >= 0) & (idx < series.shape[0])
+    if not np.any(mask):
+        return out
+
+    # For those positions, ensure the chosen anchor timestamp is actually <= the trigger timestamp
+    a_idx = idx[mask]
+    valid_time = a_ts[a_idx] <= t_ts[mask]
+
+    if not np.any(valid_time):
+        return out
+
+    # assign series values for final valid positions
+    valid_positions = np.nonzero(mask)[0][valid_time]
+    out[valid_positions] = series[a_idx[valid_time]]
     return out
 
 def _load_python_impl(dotted: str) -> Callable:
@@ -172,6 +185,7 @@ def backtest_mtf_close_to_close(
     notional: float = 100.0,
     indicator_registry: IndicatorRegistry | None = None,
     use_numba: bool = False,
+    precomputed_indicators: Dict | None = None,
 ) -> BacktestResult:
     required_cols = {"timestamp", "open", "high", "low", "close", "volume"}
     for df, nm in [(trigger_df, "trigger"), (anchor_df, "anchor")]:
@@ -187,15 +201,49 @@ def backtest_mtf_close_to_close(
     a_close = anchor_df["close"].to_numpy(float)
 
     # compute trend on anchor and align
-    a_ema_f = ema(a_close, int(spec.ema_fast))
-    a_ema_s = ema(a_close, int(spec.ema_slow))
+    # Try to use precomputed series when available to avoid repeated computation for many genomes
+    key_ema_f = (symbol, spec.tf_anchor, 'ema', int(spec.ema_fast))
+    key_ema_s = (symbol, spec.tf_anchor, 'ema', int(spec.ema_slow))
+    if precomputed_indicators and key_ema_f in precomputed_indicators:
+        a_ema_f = precomputed_indicators[key_ema_f]
+    else:
+        a_ema_f = ema(a_close, int(spec.ema_fast))
+        if precomputed_indicators is not None:
+            precomputed_indicators[key_ema_f] = a_ema_f
+    if precomputed_indicators and key_ema_s in precomputed_indicators:
+        a_ema_s = precomputed_indicators[key_ema_s]
+    else:
+        a_ema_s = ema(a_close, int(spec.ema_slow))
+        if precomputed_indicators is not None:
+            precomputed_indicators[key_ema_s] = a_ema_s
     ema_f = _align_anchor_to_trigger(anchor_df, trigger_df, a_ema_f)
     ema_s = _align_anchor_to_trigger(anchor_df, trigger_df, a_ema_s)
 
-    # compute trigger indicators
-    r = rsi(t_close, int(spec.rsi_len))
-    a = atr(t_high, t_low, t_close, int(spec.atr_len))
-    z = zscore(t_close, int(spec.z_len)) if int(spec.z_len) > 0 else np.full_like(t_close, np.nan, dtype=float)
+    # compute trigger indicators (use precomputed when available)
+    key_rsi = (symbol, spec.tf_trigger, 'rsi', int(spec.rsi_len))
+    key_atr = (symbol, spec.tf_trigger, 'atr', int(spec.atr_len))
+    key_z = (symbol, spec.tf_trigger, 'z', int(spec.z_len))
+    if precomputed_indicators and key_rsi in precomputed_indicators:
+        r = precomputed_indicators[key_rsi]
+    else:
+        r = rsi(t_close, int(spec.rsi_len))
+        if precomputed_indicators is not None:
+            precomputed_indicators[key_rsi] = r
+    if precomputed_indicators and key_atr in precomputed_indicators:
+        a = precomputed_indicators[key_atr]
+    else:
+        a = atr(t_high, t_low, t_close, int(spec.atr_len))
+        if precomputed_indicators is not None:
+            precomputed_indicators[key_atr] = a
+    if int(spec.z_len) > 0:
+        if precomputed_indicators and key_z in precomputed_indicators:
+            z = precomputed_indicators[key_z]
+        else:
+            z = zscore(t_close, int(spec.z_len))
+            if precomputed_indicators is not None:
+                precomputed_indicators[key_z] = z
+    else:
+        z = np.full_like(t_close, np.nan, dtype=float)
 
     fee_rate = bps_to_rate(commission_bps)
     slippage_ticks = int(slippage_ticks or 0)
