@@ -25,3 +25,16 @@
 - Implemented `numba` JIT path for the core entry/exit index detection. This gives additional speed when working with large single-threaded runs and numba is available.
 - CI performance gating added (lightweight bench) at `.github/workflows/perf.yml` to catch regressions.
 
+## Integration run (FinRL + numba) ✅
+
+- I installed optional packages: `numba`, `finrl`, `yfinance`, `ta`, `pandas_ta` into the devcontainer environment.
+- Generated FinRL-inspired indicator specs with `ga_trader.providers.finrl.generate_indicator_specs()` (wrote 7 specs into `indicators/specs`).
+- Ran unit tests and perf tests (all passed locally).
+- Ran the synthetic benchmark harness: output written to `runs/synth_bench/topk.json`.
+- Ran a quick real-data GA with FinRL indicators and numba enabled:
+  - Command used:
+    - `PYTHONPATH=$PWD .venv/bin/python -m ga_trader.cli ga run -c configs/config.quick_test.yaml -u configs/universe_quick.json --indicators_root indicators --use-numba --workers 2`
+  - Result run directory: `runs/quick_test`
+  - Top-1 fitness: `0.5035` (see `runs/quick_test/topk.json`)
+
+These results confirm the FinRL provider and numba JIT code path work in this environment and the GA can run end-to-end using the new indicator specs.

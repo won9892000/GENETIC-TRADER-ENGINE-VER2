@@ -16,3 +16,5 @@ dependencies = [
 
 [project.optional-dependencies]
 numba = ["numba>=0.57.0"]
+finrl = ["finrl", "yfinance", "ta", "pandas_ta"]
+
