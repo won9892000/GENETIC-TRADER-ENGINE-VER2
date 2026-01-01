@@ -1,0 +1,14 @@
+indicator_id: finrl_cci
+name: FinRL CCI
+timeframe: trigger
+parameters:
+  length:
+    type: int
+    min: 2
+    max: 200
+    default: 20
+outputs:
+  cci:
+    kind: value
+python_impl: ga_trader.providers.finrl:compute_cci
+pine_snippet: ''

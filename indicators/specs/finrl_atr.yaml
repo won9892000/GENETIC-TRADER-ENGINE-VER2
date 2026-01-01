@@ -1,0 +1,14 @@
+indicator_id: finrl_atr
+name: FinRL ATR
+timeframe: anchor
+parameters:
+  length:
+    type: int
+    min: 2
+    max: 200
+    default: 14
+outputs:
+  atr:
+    kind: value
+python_impl: ga_trader.providers.finrl:compute_atr
+pine_snippet: ''

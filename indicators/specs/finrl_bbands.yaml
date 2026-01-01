@@ -1,0 +1,23 @@
+indicator_id: finrl_bbands
+name: FinRL Bollinger Bands
+timeframe: trigger
+parameters:
+  length:
+    type: int
+    min: 2
+    max: 200
+    default: 20
+  mult:
+    type: float
+    min: 0.5
+    max: 4.0
+    default: 2.0
+outputs:
+  bb_mid:
+    kind: value
+  bb_upper:
+    kind: value
+  bb_lower:
+    kind: value
+python_impl: ga_trader.providers.finrl:compute_bbands
+pine_snippet: ''

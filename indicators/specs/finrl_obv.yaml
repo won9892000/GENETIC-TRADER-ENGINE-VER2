@@ -1,0 +1,9 @@
+indicator_id: finrl_obv
+name: FinRL OBV
+timeframe: trigger
+parameters: {}
+outputs:
+  obv:
+    kind: value
+python_impl: ga_trader.providers.finrl:compute_obv
+pine_snippet: ''

@@ -69,7 +69,8 @@ def run(
     data: dict[str, dict[str, pd.DataFrame]] = {}
     missing = []
     for sym in symbols:
-        s = sym["symbol"]
+        # symbols list contains strings like 'BTCUSDT'
+        s = str(sym)
         tmap = {}
         for tf in tfs:
             path = store_dir / f"{s}_{tf}.csv"
