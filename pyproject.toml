@@ -13,3 +13,6 @@ dependencies = [
     "streamlit>=1.52.2",
     "typer>=0.21.0",
 ]
+
+[project.optional-dependencies]
+numba = ["numba>=0.57.0"]

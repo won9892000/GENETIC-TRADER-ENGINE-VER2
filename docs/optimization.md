@@ -11,11 +11,17 @@
 - Run with multiple workers (recommended):
   - CLI: `python -m ga_trader.cli ga run -c configs/config.example.yaml -u runs/universe.json --workers 8`
   - Or set env var `GA_WORKERS=8` to control default worker count.
+- Use multiprocessing instead of threads for isolated worker processes (trade-off: higher start-up/pickling cost):
+  - `--use-processes` to enable process pool evaluation.
+
+- Use numba JIT for the inner backtest loop (optional):
+  - Install optional dependency: `pip install .[numba]`
+  - Enable with CLI: `--use-numba` (will be used only if numba is installed).
 
 - Use persistent cache to speed up repeated runs:
   - `--cache-file runs/myrun/scored_cache.pkl` will persist evaluated specs between runs.
 
 ## Notes & next steps
-- Consider adding optional `numba` JIT paths for the inner backtest loop to further speed sequential logic.
-- Add CI performance gating (e.g., a lightweight benchmark smoke-test) to catch regressions.
+- Implemented `numba` JIT path for the core entry/exit index detection. This gives additional speed when working with large single-threaded runs and numba is available.
+- CI performance gating added (lightweight bench) at `.github/workflows/perf.yml` to catch regressions.
 
