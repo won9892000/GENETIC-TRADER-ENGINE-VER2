@@ -52,3 +52,15 @@ def harvest(
     print(f"[green]Wrote draft spec:[/green] {out_spec_path}")
     print("[yellow]Next step:[/yellow] fill 'outputs' and implement python_impl + pine_snippet mapping as needed.")
 
+
+@indicators_app.command("import-finrl")
+def import_finrl(
+    root: str = typer.Option("indicators", "--root", help="Indicator root folder"),
+):
+    """Generate a set of FinRL-inspired indicator specs (no external deps required to generate specs)."""
+    rootp = Path(root)
+    rootp.mkdir(parents=True, exist_ok=True)
+    from ga_trader.providers.finrl import generate_indicator_specs
+    n = generate_indicator_specs(rootp)
+    print(f"[green]Wrote {n} indicator specs to[/green] {rootp / 'specs'}")
+

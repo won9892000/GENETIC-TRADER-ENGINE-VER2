@@ -1,0 +1,17 @@
+indicator_id: finrl_rsi
+name: FinRL RSI
+timeframe: trigger
+parameters:
+  length:
+    type: int
+    min: 2
+    max: 100
+    default: 14
+outputs:
+  rsi:
+    kind: value
+    scale:
+    - 0.0
+    - 100.0
+python_impl: ga_trader.providers.finrl:compute_rsi
+pine_snippet: ''

@@ -1,0 +1,62 @@
+project:
+  run_root: runs
+  run_name: quick_test
+
+validation:
+  parity_symbol: BTCUSDT
+
+data:
+  timeframes: ["5m", "15m"]
+  lookback_days: 180
+  store_dir: data
+  split:
+    is: 0.6
+    oos: 0.2
+    hold: 0.2
+
+execution:
+  fill: same_bar_close
+  pyramiding: 0
+  slippage_ticks: 0
+
+fees:
+  commission_bps: 4.0
+
+risk:
+  sizing: fixed_notional
+  fixed_notional: 100.0
+
+ga:
+  population: 24
+  generations: 4
+  elite_ratio: 0.10
+  tournament_k: 3
+  crossover_rate: 0.7
+  mutation_rate: 0.2
+  seed: 7
+  topk: 5
+
+fitness:
+  mode: weighted_sum
+  weights:
+    oos_expectancy: 1.0
+    oos_profit_factor: 0.5
+    oos_win_rate: 0.5
+    oos_trades_per_month: 0.2
+    oos_max_drawdown: -1.0
+    is_oos_gap: -0.5
+  constraints:
+    oos_trades_per_month: [1, 300]
+
+strategy_space:
+  ema_fast: [5, 30]
+  ema_slow: [20, 80]
+  rsi_len: [6, 30]
+  rsi_long: [50, 70]
+  rsi_short: [30, 50]
+  atr_len: [7, 28]
+  sl_atr: [0.6, 2.0]
+  tp_atr: [0.6, 2.5]
+  z_len: [0, 40]
+  z_entry: [0.0, 2.0]
+  max_extra_filters: 1

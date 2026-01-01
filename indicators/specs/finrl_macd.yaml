@@ -1,0 +1,28 @@
+indicator_id: finrl_macd
+name: FinRL MACD
+timeframe: trigger
+parameters:
+  fast:
+    type: int
+    min: 2
+    max: 50
+    default: 12
+  slow:
+    type: int
+    min: 10
+    max: 200
+    default: 26
+  signal:
+    type: int
+    min: 2
+    max: 50
+    default: 9
+outputs:
+  macd:
+    kind: value
+  macd_signal:
+    kind: value
+  macd_hist:
+    kind: value
+python_impl: ga_trader.providers.finrl:compute_macd
+pine_snippet: ''
