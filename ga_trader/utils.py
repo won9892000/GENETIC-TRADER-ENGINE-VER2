@@ -18,7 +18,15 @@ def ensure_dir(p: Path) -> Path:
 
 def save_json(path: Path, obj: Any):
     ensure_dir(path.parent)
-    path.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
+    # Use orjson if available for faster serialization when installed
+    try:
+        import orjson as _orjson
+        b = _orjson.dumps(obj, option=_orjson.OPT_INDENT_2 | _orjson.OPT_NON_STR_KEYS)
+        # orjson returns bytes
+        path.write_bytes(b)
+    except Exception:
+        # fallback: compact separators to speed writes relative to pretty indentation
+        path.write_text(json.dumps(obj, ensure_ascii=False, separators=(',',':')), encoding="utf-8")
 
 def load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
