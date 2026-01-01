@@ -16,6 +16,8 @@ def run(
     config: str = typer.Option(..., "--config", "-c", help="Path to config.yaml"),
     universe: str = typer.Option(..., "--universe", "-u", help="Universe json"),
     indicators_root: str = typer.Option("indicators", "--indicators_root", help="Indicator root (specs/)"),
+    workers: int | None = typer.Option(None, "--workers", "-w", help="Number of worker threads to use (defaults to CPU-1)"),
+    cache_file: str | None = typer.Option(None, "--cache-file", help="Optional path to persistent cache file for evaluated specs"),
 ):
     cfg = Config.load(config)
     u = load_json(Path(universe))
@@ -125,5 +127,7 @@ def run(
         rng_seed=int(gcfg.get("seed", 42)),
         out_dir=out_dir,
         topk=int(gcfg.get("topk", 20)),
+        workers=workers,
+        cache_file=cache_file,
     )
     print(f"[green]GA completed[/green]. Run dir: {out_dir}")

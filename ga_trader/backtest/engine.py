@@ -75,16 +75,15 @@ def _compute_metrics(trades: List[Trade]) -> Dict[str, float]:
     }
 
 def _align_anchor_to_trigger(anchor_df: pd.DataFrame, trigger_df: pd.DataFrame, series: np.ndarray) -> np.ndarray:
-    # For each trigger timestamp, pick the last anchor bar with ts <= trigger ts, and use its series value.
+    # Vectorized implementation using searchsorted: for each trigger ts pick the last anchor ts <= trigger ts
     a_ts = anchor_df["timestamp"].to_numpy(dtype=np.int64)
     t_ts = trigger_df["timestamp"].to_numpy(dtype=np.int64)
+    # find insertion index to keep a_ts sorted; subtract 1 to get last index <= t_ts
+    idx = np.searchsorted(a_ts, t_ts, side='right') - 1
     out = np.full_like(t_ts, np.nan, dtype=float)
-    j = 0
-    for i in range(len(t_ts)):
-        while j + 1 < len(a_ts) and a_ts[j + 1] <= t_ts[i]:
-            j += 1
-        if a_ts[j] <= t_ts[i]:
-            out[i] = series[j]
+    valid = (idx >= 0) & (idx < len(a_ts)) & (a_ts[idx] <= t_ts)
+    if np.any(valid):
+        out[valid] = series[idx[valid]]
     return out
 
 def _load_python_impl(dotted: str) -> Callable:

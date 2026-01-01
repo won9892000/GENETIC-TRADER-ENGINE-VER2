@@ -5,6 +5,9 @@ import random
 import numpy as np
 import pandas as pd
 from pathlib import Path
+import os
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from ga_trader.ga.genome import Genome, random_genome, crossover, mutate
 from ga_trader.backtest.engine import backtest_mtf_close_to_close
@@ -140,6 +143,8 @@ def run_ga(
     rng_seed: int,
     out_dir: Path,
     topk: int = 20,
+    workers: int | None = None,
+    cache_file: str | None = None,
 ):
     rng = random.Random(int(rng_seed))
     ensure_dir(out_dir)
@@ -148,7 +153,15 @@ def run_ga(
 
     pop = [random_genome(space, rng, ctx.timeframes, reg) for _ in range(population)]
     history = []
+    import pickle
     scored_cache = {}
+    # optional persistent cache
+    if 'cache_file' in locals() and locals().get('cache_file'):
+        try:
+            with open(locals().get('cache_file'), 'rb') as _f:
+                scored_cache = pickle.load(_f) or {}
+        except Exception:
+            scored_cache = {}
 
     def cache_key(g: Genome):
         d = g.to_spec().to_dict()
@@ -157,13 +170,17 @@ def run_ga(
         return (d["tf_anchor"], d["tf_trigger"], d["ema_fast"], d["ema_slow"], d["rsi_len"], round(d["rsi_long"],4), round(d["rsi_short"],4),
                 d["atr_len"], round(d["sl_atr"],4), round(d["tp_atr"],4), d["z_len"], round(d["z_entry"],4), ef)
 
+    cache_lock = threading.Lock()
+
     def score(g: Genome) -> Tuple[float, Dict[str, Any]]:
         key = cache_key(g)
-        if key in scored_cache:
-            return scored_cache[key][0], scored_cache[key][1]
+        with cache_lock:
+            if key in scored_cache:
+                return scored_cache[key][0], scored_cache[key][1]
         fit, extra = evaluate_genome(g, ctx, fitness_cfg)
-        scored_cache[key] = (fit.fitness, {"fitness_details": fit.details, **extra})
-        return fit.fitness, scored_cache[key][1]
+        with cache_lock:
+            scored_cache[key] = (fit.fitness, {"fitness_details": fit.details, **extra})
+            return scored_cache[key][0], scored_cache[key][1]
 
     pareto_cfg = dict((fitness_cfg.get("pareto") or {}))
     objectives = pareto_cfg.get("objectives") or [
@@ -174,9 +191,24 @@ def run_ga(
 
     for gen in range(generations):
         scored = []
-        for g in pop:
-            f, extra = score(g)
-            scored.append((g, f, extra))
+        # determine worker count: explicit param > env var > cpu_count
+        if workers is None:
+            try:
+                workers = int(os.environ.get("GA_WORKERS", "0")) or max(1, (os.cpu_count() or 1) - 1)
+            except Exception:
+                workers = max(1, (os.cpu_count() or 1) - 1)
+        if workers and workers > 1:
+            # ThreadPool is a good fit: numpy releases GIL during heavy computations and avoids large pickling costs.
+            with ThreadPoolExecutor(max_workers=workers) as ex:
+                future_to_gen = {ex.submit(score, g): g for g in pop}
+                for fut in as_completed(future_to_gen):
+                    g = future_to_gen[fut]
+                    f, extra = fut.result()
+                    scored.append((g, f, extra))
+        else:
+            for g in pop:
+                f, extra = score(g)
+                scored.append((g, f, extra))
         scored.sort(key=lambda x: x[1], reverse=True)
 
         best = scored[0]
@@ -286,5 +318,13 @@ def run_ga(
     except Exception:
         # Non-fatal; GA results still valid.
         pass
+
+    # write persistent cache if requested
+    if 'cache_file' in locals() and locals().get('cache_file'):
+        try:
+            with open(locals().get('cache_file'), 'wb') as _f:
+                pickle.dump(scored_cache, _f)
+        except Exception:
+            pass
 
     return out_dir
