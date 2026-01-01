@@ -38,3 +38,12 @@
   - Top-1 fitness: `0.5035` (see `runs/quick_test/topk.json`)
 
 These results confirm the FinRL provider and numba JIT code path work in this environment and the GA can run end-to-end using the new indicator specs.
+
+## Streamlit UI
+
+- A minimal Streamlit app is available at `apps/streamlit_app.py` to run a GA interactively.
+- Launch it from the project root (recommended using the project's venv):
+
+  PYTHONPATH=$PWD .venv/bin/python -m streamlit run apps/streamlit_app.py
+
+- The app lets you pick a config/universe, toggle `--use-numba`/`--use-processes`, set worker count, and run a GA in-process (suitable for quick experiments).
